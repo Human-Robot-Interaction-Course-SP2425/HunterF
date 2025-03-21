@@ -242,13 +242,12 @@ def handle_quit():
             shutil.rmtree(tmp_dir)
         bot.robot.close()
     print("Bye!")
-    # TODO: Figure out how to kill flask gracefully
+    # Kill the npm process if it exists
     if yarn_process:
         try:
-            os.killpg(os.getpgid(yarn_process.pid), signal.SIGTERM)
+            yarn_process.terminate()
         except Exception:
-            print("Caught unknown exception (please change the except statement)")
-            print("Couldn't kill yarn process")
+            print("Couldn't kill npm process")
             pass
     os.kill(os.getpid(), signal.SIGTERM)
 
@@ -514,7 +513,7 @@ def start_server(host, port, hide_browser):
 
     print(t)
    
-    #start_yarn()
+    start_web()
     if not hide_browser:
 
         addr = "%s:%d" % (host, port)
@@ -526,15 +525,15 @@ def start_server(host, port, hide_browser):
     server.start_server(host, port)
 
 
-def start_yarn():
+def start_web():
     """
-    Run `yarn dev` to start the react app. The process id is saved to a global variable so it can be killed later.
+    Run `npm start` to start the react app. The process id is saved to a global variable so it can be killed later.
     """
     global yarn_process
 
-    command = "yarn dev"
+    command = "npm start"
     yarn_process = subprocess.Popen(
-        command, shell=True, cwd="./blossom_web", stdout=subprocess.PIPE, preexec_fn=os.setsid)
+        command, shell=True, cwd="./blossom_web", stdout=subprocess.PIPE)
 
 
 def main(args):

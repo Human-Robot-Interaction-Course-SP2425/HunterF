@@ -1,0 +1,6 @@
+tower_1: tilts head down, max 5
+tower_2: tilts head right, max 5
+tower_3: tilts head left, max 5
+base: 3->1 spins ccw, max 3
+
+"millis", time increments

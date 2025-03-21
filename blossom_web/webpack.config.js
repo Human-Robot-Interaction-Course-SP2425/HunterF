@@ -1,42 +1,52 @@
-const webpack = require('webpack');
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-const config = {
-    entry: './src/index.js',
-    output: {
-      path: path.resolve(__dirname, '../src/static'),
-      publicPath: '/static/',
-      filename: 'js/bundle.js'
-    },
-    devServer: {
-      historyApiFallback: true,
-      proxy: {
-        '*': 'http://localhost:8000'
-      }
-    },
-    module: {
-      rules: [
-        {
-            test: /\.(js|jsx)$/,
-            exclude: /node_modules/,
-            use: 'babel-loader'
-        },
-        {
-          test: /\.(css|scss)$/,
-          use: [
-            {
-              loader: "style-loader"
-            }, {
-              loader: "css-loader"
-            }, {
-              loader: "sass-loader"
-            }
-          ]
+module.exports = {
+  mode: 'development',
+  entry: './src/index.js',
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'bundle.js',
+  },
+  module: {
+    rules: [
+      {
+        test: /\.(js|jsx)$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env', '@babel/preset-react']
+          }
         }
-      ]
-    },
-    resolve: {
-      extensions: ['.js', '.jsx', '.scss', '.css']
+      },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader']
+      },
+      {
+        test: /\.scss$/,
+        use: ['style-loader', 'css-loader', 'sass-loader']
+      }
+    ]
+  },
+  resolve: {
+    extensions: ['.js', '.jsx']
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: './public/index.html',
+      filename: 'index.html'
+    })
+  ],
+  devServer: {
+    historyApiFallback: true,
+    proxy: {
+      '*': {
+        target: 'http://137.112.198.204:8000',
+        secure: false,
+        changeOrigin: true
+      }
     }
+  }
 };
-module.exports = config;

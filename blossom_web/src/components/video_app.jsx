@@ -9,7 +9,7 @@ import { BrowserRouter as Router, Route } from "react-router-dom";
  * An app for running blossom video demos.
  */
 export class VideoApp extends React.Component {
-  constructor(props){
+  constructor(props) {
     super(props);
     this.state = {
       videoData: {},
@@ -24,7 +24,7 @@ export class VideoApp extends React.Component {
     fetch(`/videos`)
       .then(response => {
         response.json().then(data => {
-          this.setState({videoData: data});
+          this.setState({ videoData: data });
         });
       })
       .catch(error => {

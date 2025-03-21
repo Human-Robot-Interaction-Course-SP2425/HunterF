@@ -111,7 +111,7 @@ def handle_sequence(gesture):
         bot.post = server.post
 
     server.handle_input(server.master_robot, 's', [gesture])
-    return gesture, "fired"
+    return jsonify({"gesture": gesture, "status": "fired"})
 
 
 @app.route('/s/<gesture>/<idle>')
@@ -121,10 +121,10 @@ def handle_sequence_idle(gesture, idle):
     """
     try:
         server.handle_input(server.master_robot, 's', [gesture + '/' + idle])
+        return jsonify({"gesture": gesture, "idle": idle, "status": "fired"})
     except KeyError as e:
         print("Unknown sequence", e)
-        pass
-    return gesture, "fired"
+        return jsonify({"error": f"Unknown sequence: {gesture}/{idle}"}), 404
 
 
 @app.route('/position', methods=['POST'])
@@ -207,7 +207,6 @@ def get_imu_data(raw_data):
 def get_sequences():
     
     seqs = server.master_robot.get_time_sequences()
-
     return jsonify(seqs)
 
 
