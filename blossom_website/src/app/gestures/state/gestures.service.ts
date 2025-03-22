@@ -26,13 +26,25 @@ export class GesturesService {
 
   play(gesture: Gesture) {
     return this.http.get<GesturePlayResponse>(`/s/${gesture.name}`).pipe(
-      tap(res => {
-        this.notificationService.success(`Playing gesture: ${res.gesture}`);
+      tap((res) => {
+        this.notificationService.success(`Playing gesture: ${res.gesture}!`);
       }),
-      catchError(err => {
-        this.notificationService.error(`Error playing gesture`);
+      catchError((err) => {
+        this.notificationService.error(`Error playing gesture!`);
         return throwError(() => err);
       })
-    )
+    );
+  }
+
+  reset() {
+    return this.http.post('/reset', {}).pipe(
+      tap(() => {
+        this.notificationService.success('Reset Successful!');
+      }),
+      catchError((err) => {
+        this.notificationService.error('Error resetting!');
+        return throwError(() => err);
+      })
+    );
   }
 }

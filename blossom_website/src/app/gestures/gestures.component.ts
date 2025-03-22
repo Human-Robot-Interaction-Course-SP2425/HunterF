@@ -52,4 +52,8 @@ export class GesturesComponent implements OnInit {
   playGesture(gesture: Gesture) {
     this.gesturesService.play(gesture).subscribe();
   }
+
+  reset() {
+    this.gesturesService.reset().subscribe();
+  }
 }

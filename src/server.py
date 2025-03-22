@@ -87,7 +87,7 @@ def handle_reload():
     reload list of sequences
     """
     server.handle_input(server.master_robot, 'r')
-    return "reloaded"
+    return jsonify({"status": "success", "message": "Reloaded"}), 200
 
 
 @app.route('/s/<gesture>')
@@ -111,7 +111,7 @@ def handle_sequence(gesture):
         bot.post = server.post
 
     server.handle_input(server.master_robot, 's', [gesture])
-    return jsonify({"gesture": gesture, "status": "fired"})
+    return jsonify({"gesture": gesture, "status": "fired"}), 200
 
 
 @app.route('/s/<gesture>/<idle>')
@@ -185,7 +185,7 @@ def set_position():
         bot.believed_motor_pos = motor_pos
 
     server.motor_pos = motor_pos
-    return "200 OK"
+    return jsonify({"status": "success", "message": "Position set"}), 200
 
 
 def get_imu_data(raw_data):
@@ -207,7 +207,7 @@ def get_imu_data(raw_data):
 def get_sequences():
     
     seqs = server.master_robot.get_time_sequences()
-    return jsonify(seqs)
+    return jsonify(seqs), 200
 
 
 # TODO: support multiple robots and move logic to start.py (in case we want to update from CLI)
@@ -219,7 +219,7 @@ def update_sequence(seq_id):
     # load the data from the gesture generation form
     data = json.loads(request.data)
     if "name" not in data:
-        return "no name given", 400
+        return jsonify({"status": "error", "message": "No name given"}), 400
     # split
     name, label = data["name"], data["label"]
 
@@ -251,15 +251,15 @@ def update_sequence(seq_id):
         if seq == src_file:
             os.rename(tmp_dir + src_file, seq_dir + dst_file)
             update_seq_file(seq_dir + dst_file, name, label)
-            return "200 OK"
+            return jsonify({"status": "success", "message": "Sequence updated"}), 200
 
     # change name in actual
     for seq in os.listdir(seq_dir):
         if seq == src_file:
             os.rename(seq_dir + src_file, seq_dir + dst_file)
             update_seq_file(seq_dir + dst_file, name, label)
-            return "200 OK"
-    return "sequence not found", 404
+            return jsonify({"status": "success", "message": "Sequence updated"}), 200
+    return jsonify({"status": "error", "message": "Sequence not found"}), 404
 
 
 def update_seq_file(seq_path, name, label):
@@ -300,7 +300,7 @@ def get_videos():
             # catch if video was already added
             video_id = data["videoId"]
             video_ids.update({video_id: data["triggers"]})
-    return jsonify(video_ids)
+    return jsonify(video_ids), 200
 
 
 @app.route('/reset', methods=['POST'])
@@ -314,19 +314,19 @@ def reset_sensors():
     server.motor_pos = server.master_robot.reset_pos
     # get current yaw reading and store it
     server.yaw = cur_yaw
-    return "200 OK"
+    return jsonify({"status": "success", "message": "Reset completed"}), 200
 
 
 @app.route('/record/start', methods=['POST'])
 def handle_record_start():
     server.record(server.master_robot)
-    return "200 OK"
+    return jsonify({"status": "success", "message": "Recording started"}), 200
 
 
 @app.route('/record/stop', methods=['POST'])
 def handle_record_stop():
-    name = server.stop_record(server.master_robot)
-    return jsonify({"name": name})
+    name = server.stop_record(server.master_robot)  
+    return jsonify({"status": "success", "name": name}), 200
 
 
 @app.route('/', defaults={'path': ''})

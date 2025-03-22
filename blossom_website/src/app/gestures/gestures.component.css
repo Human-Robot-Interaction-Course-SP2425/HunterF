@@ -27,5 +27,9 @@
         .gestures-search-bar {
             @apply bg-white rounded-md p-2 w-full sticky top-0 border-1 mb-2;
         }
+
+        .gestures-reset-button {
+            @apply bg-red-500 text-3xl w-full mt-2 p-3 rounded-md font-bold;
+        }
     }
 }
