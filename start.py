@@ -515,9 +515,8 @@ def start_server(host, port, hide_browser):
    
     start_web()
     if not hide_browser:
-
-        addr = "%s:%d" % (host, port)
-        webbrowser.open("http:"+addr, new=2)
+        # Open the Angular app URL
+        webbrowser.open("http://localhost:4200", new=2)
     
     print("\nExample command: s -> *enter* -> yes -> *enter*")
     server.set_funcs(master_robot, robots, handle_input,
@@ -533,13 +532,24 @@ def start_web():
 
     command = "npm start"
     yarn_process = subprocess.Popen(
-        command, shell=True, cwd="./blossom_web", stdout=subprocess.PIPE)
+        command, shell=True, cwd="./blossom_website", stdout=subprocess.PIPE)
 
+
+def signal_handler(sig, frame):
+    """
+    Handle Ctrl+C by calling handle_quit() before exiting
+    """
+    print('\nCaught Ctrl+C, cleaning up...')
+    handle_quit()
+    sys.exit(0)
 
 def main(args):
     """
     Start robots, start up server, handle CLI
     """
+    # Set up signal handler for graceful shutdown
+    signal.signal(signal.SIGINT, signal_handler)
+    
     # get robots to start
     global master_robot
     global robots
