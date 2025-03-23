@@ -20,6 +20,7 @@
     "@ng-icons/bootstrap-icons": "^31.2.0",
     "@ng-icons/core": "^31.2.0",
     "@tailwindcss/postcss": "^4.0.15",
+    "blockly": "^11.2.2",
     "postcss": "^8.5.3",
     "rxjs": "~7.8.0",
     "tailwindcss": "^4.0.15",

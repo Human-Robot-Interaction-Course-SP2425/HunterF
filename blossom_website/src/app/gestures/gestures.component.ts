@@ -33,8 +33,8 @@ export class GesturesComponent implements OnInit {
   constructor() {}
 
   ngOnInit(): void {
-    this.gestures = this.gesturesService.get();
-    // this.gestures = of(this.testData);
+    // this.gestures = this.gesturesService.get();
+    this.gestures = of(this.testData);
 
     this.filteredGestures = this.form.valueChanges.pipe(
       startWith(this.form.value),

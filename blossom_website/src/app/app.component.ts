@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { GesturesComponent } from './gestures/gestures.component';
 import { NotificationComponent } from './notification/notification.component';
+import { NavigationComponent } from './navigation/navigation.component';
+
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, GesturesComponent, NotificationComponent],
+  imports: [RouterOutlet, NotificationComponent, NavigationComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@layer components {
+  .navigation-button {
+    @apply p-4 border-b-4 bg-gray-200 active:scale-100 hover:bg-gray-300;
+  }
+
+  .active-navigation-button {
+    @apply bg-gray-300 hover:bg-gray-400;
+  }
+}
