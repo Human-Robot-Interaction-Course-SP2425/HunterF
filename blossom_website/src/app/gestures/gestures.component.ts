@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { debounceTime, filter, map, Observable, of, startWith, switchMap } from 'rxjs';
-import { GesturesService } from './state/gestures.service';
-import { Gesture } from './state/gestures.interface';
+import { GesturesService } from '../services/gestures.service';
+import { Gesture } from '../services/gestures.interface';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 

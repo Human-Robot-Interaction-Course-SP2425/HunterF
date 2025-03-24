@@ -1,6 +1,7 @@
 """
 A Flask webserver for handling requests to the robot
 """
+
 from __future__ import print_function
 
 import os
@@ -12,6 +13,7 @@ from collections import OrderedDict
 import socket
 import requests
 from flask_cors import CORS
+
 
 class Server(object):
     """
@@ -36,7 +38,9 @@ class Server(object):
         # init dict of current motor positions
         self.motor_pos = {}
 
-    def set_funcs(self, master_robot, robots, handle_input, record, stop_record, store_gesture):
+    def set_funcs(
+        self, master_robot, robots, handle_input, record, stop_record, store_gesture
+    ):
         """
         updates server functions
         """
@@ -54,7 +58,7 @@ class Server(object):
         app.run(host=host, port=port, threaded=True)
 
 
-app = Flask(__name__) 
+app = Flask(__name__)
 CORS(app)
 server = Server()
 cur_yaw = 0
@@ -69,37 +73,44 @@ def add_cors_headers(response):
     """
     adds cors headers
     """
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-    response.headers.add('Access-Control-Allow-Headers', 'Cache-Control')
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("Access-Control-Allow-Credentials", "true")
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type")
+    response.headers.add("Access-Control-Allow-Headers", "Cache-Control")
+    response.headers.add("Access-Control-Allow-Headers", "X-Requested-With")
+    response.headers.add("Access-Control-Allow-Headers", "Authorization")
     response.headers.add(
-        'Access-Control-Allow-Headers', 'X-Requested-With')
-    response.headers.add('Access-Control-Allow-Headers', 'Authorization')
-    response.headers.add('Access-Control-Allow-Methods',
-                         'GET, POST, OPTIONS, PUT, DELETE')
+        "Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE"
+    )
     return response
 
 
-@app.route('/r')
+@app.route("/r")
 def handle_reload():
     """
     reload list of sequences
     """
-    server.handle_input(server.master_robot, 'r')
+    server.handle_input(server.master_robot, "r")
     return jsonify({"status": "success", "message": "Reloaded"}), 200
 
 
-@app.route('/s/<gesture>')
+@app.route("/s/<gesture>")
 def handle_sequence(gesture):
     """
     plays a sequence
     """
-    speed, amp, post = request.args.get('speed'), request.args.get('amp'), request.args.get('post')
+    speed, amp, post = (
+        request.args.get("speed"),
+        request.args.get("amp"),
+        request.args.get("post"),
+    )
 
-    if speed==None: speed = 1
-    if amp==None: amp = 1
-    if post==None: post = 1
+    if speed == None:
+        speed = 1
+    if amp == None:
+        amp = 1
+    if post == None:
+        post = 1
 
     server.speed = float(speed)
     server.amp = float(amp)
@@ -110,24 +121,24 @@ def handle_sequence(gesture):
         bot.amp = server.amp
         bot.post = server.post
 
-    server.handle_input(server.master_robot, 's', [gesture])
+    server.handle_input(server.master_robot, "s", [gesture])
     return jsonify({"gesture": gesture, "status": "fired"}), 200
 
 
-@app.route('/s/<gesture>/<idle>')
+@app.route("/s/<gesture>/<idle>")
 def handle_sequence_idle(gesture, idle):
     """
     plays a sequence, repeating indefinitely
     """
     try:
-        server.handle_input(server.master_robot, 's', [gesture + '/' + idle])
+        server.handle_input(server.master_robot, "s", [gesture + "/" + idle])
         return jsonify({"gesture": gesture, "idle": idle, "status": "fired"})
     except KeyError as e:
         print("Unknown sequence", e)
         return jsonify({"error": f"Unknown sequence: {gesture}/{idle}"}), 404
 
 
-@app.route('/position', methods=['POST'])
+@app.route("/position", methods=["POST"])
 def set_position():
     """
     moves the robot to the positon specified by the request data
@@ -138,13 +149,12 @@ def set_position():
     # split into measurements
     raw_data = request.get_json()
     imu = get_imu_data(raw_data)
-    mirror = raw_data['mirror']
+    mirror = raw_data["mirror"]
 
     global server
     # get base motor positions, accounting for stored yaw reset position
-    adj_yaw = imu[2]-server.yaw
-    pos = k.get_motor_pos(
-        [-adj_yaw, imu[0], -imu[1], imu[3]], [imu[4], imu[5], imu[6]])
+    adj_yaw = imu[2] - server.yaw
+    pos = k.get_motor_pos([-adj_yaw, imu[0], -imu[1], imu[3]], [imu[4], imu[5], imu[6]])
     # get ear motor position
     ears_pos = k.get_ears_pos(imu[4])
     # save orientation
@@ -157,25 +167,25 @@ def set_position():
 
     # command positions
     motor_pos = {
-        'tower_1': pos[0],
-        'tower_2': pos[1],
-        'tower_3': pos[2],
-        'base': pos[3],
-        'ears': ears_pos
+        "tower_1": pos[0],
+        "tower_2": pos[1],
+        "tower_3": pos[2],
+        "base": pos[3],
+        "ears": ears_pos,
     }
 
     # handle mirroring mode (swap roll for towers 2 and 3, flip yaw)
-    if (mirror):
+    if mirror:
         # motor_pos['tower_1']= pos[0]
-        motor_pos['tower_2'] = pos[2]
-        motor_pos['tower_3'] = pos[1]
-        motor_pos['base'] = -pos[3]
+        motor_pos["tower_2"] = pos[2]
+        motor_pos["tower_3"] = pos[1]
+        motor_pos["base"] = -pos[3]
 
     # prevent quick turning around
-    if 'base' in server.motor_pos:
-        last_yaw = server.motor_pos['base']
-        if(np.abs(last_yaw - motor_pos['base']) > 100):
-            motor_pos['base'] = last_yaw
+    if "base" in server.motor_pos:
+        last_yaw = server.motor_pos["base"]
+        if np.abs(last_yaw - motor_pos["base"]) > 100:
+            motor_pos["base"] = last_yaw
 
     # adjust the duration (numeric input to goto_position)
     # higher (0.3) = slow+smooth, low (0.1) = jittery+fast
@@ -195,23 +205,38 @@ def get_imu_data(raw_data):
     global cur_yaw
 
     # convert to floats
-    imu = [raw_data['x'], raw_data['y'], raw_data['z'],
-           raw_data['h'], raw_data['ears'],
-           raw_data['ax'], raw_data['ay'], raw_data['az']]
+    imu = [
+        raw_data["x"],
+        raw_data["y"],
+        raw_data["z"],
+        raw_data["h"],
+        raw_data["ears"],
+        raw_data["ax"],
+        raw_data["ay"],
+        raw_data["az"],
+    ]
 
     cur_yaw = imu[2]
     return imu
 
 
-@app.route('/sequences')
+@app.route("/sequences")
 def get_sequences():
-    
+
     seqs = server.master_robot.get_time_sequences()
     return jsonify(seqs), 200
 
 
+@app.route("/sequences/names")
+def get_sequence_names():
+    """
+    return a list of all sequence names
+    """
+    return jsonify(server.master_robot.get_sequences()), 200
+
+
 # TODO: support multiple robots and move logic to start.py (in case we want to update from CLI)
-@app.route('/sequences/<seq_id>', methods=['POST'])
+@app.route("/sequences/<seq_id>", methods=["POST"])
 def update_sequence(seq_id):
     """
     Updates a sequence's name. If the sequence was temporary before, make it a persistant sequence.
@@ -227,17 +252,17 @@ def update_sequence(seq_id):
     seq_dir = "%s%s/" % (SEQUENCES_DIR, server.master_robot.name)
     tmp_dir = seq_dir + "tmp/"
     # if should belong in subdirectory, make directory and truncate sequence name
-    if ('/' in name):
-        seq_dir += name[:name.rfind('/') + 1]
+    if "/" in name:
+        seq_dir += name[: name.rfind("/") + 1]
         if not os.path.isdir(seq_dir):
             os.makedirs(seq_dir)
-        name = name[name.find('/') + 1:]
+        name = name[name.find("/") + 1 :]
 
     # handle collisions with existing gesture names
     new_name = name
     name_ctr = 1
-    while ((new_name + '_sequence.json') in os.listdir(seq_dir)):
-        new_name = name + '_' + str(name_ctr)
+    while (new_name + "_sequence.json") in os.listdir(seq_dir):
+        new_name = name + "_" + str(name_ctr)
         name_ctr += 1
     name = new_name
 
@@ -277,7 +302,8 @@ def update_seq_file(seq_path, name, label):
         robot.load_sequence(seq_path)
     server.store_gesture(name, seq["frame_list"], label)
 
-@app.route('/videos')
+
+@app.route("/videos")
 def get_videos():
     """
     return a list of videos we have sequences for
@@ -294,7 +320,7 @@ def get_videos():
     # save all videos
     for vid in os.listdir(video_dir):
         # check if json
-        if (vid[-5:] == '.json'):
+        if vid[-5:] == ".json":
             # load file
             data = json.load(open(video_dir + vid))
             # catch if video was already added
@@ -303,7 +329,7 @@ def get_videos():
     return jsonify(video_ids), 200
 
 
-@app.route('/reset', methods=['POST'])
+@app.route("/reset", methods=["POST"])
 def reset_sensors():
     """
     move blossom to the yaw = 0 position
@@ -317,25 +343,25 @@ def reset_sensors():
     return jsonify({"status": "success", "message": "Reset completed"}), 200
 
 
-@app.route('/record/start', methods=['POST'])
+@app.route("/record/start", methods=["POST"])
 def handle_record_start():
     server.record(server.master_robot)
     return jsonify({"status": "success", "message": "Recording started"}), 200
 
 
-@app.route('/record/stop', methods=['POST'])
+@app.route("/record/stop", methods=["POST"])
 def handle_record_stop():
-    name = server.stop_record(server.master_robot)  
+    name = server.stop_record(server.master_robot)
     return jsonify({"status": "success", "name": name}), 200
 
 
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
 def render_gui(path):
     """
     catch all that renders the react app
     """
-    return render_template('index.html')
+    return render_template("index.html")
 
 
 # get the current ip address of the computer

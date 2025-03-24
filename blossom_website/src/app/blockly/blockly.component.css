@@ -5,7 +5,7 @@
     @apply overflow-auto;
   }
 
-  #pageContainer {
+  .pageContainer {
     @apply flex w-full max-w-[100vw] h-[calc(100vh-60px)];
   }
 
@@ -13,15 +13,19 @@
     @apply basis-full h-full min-w-[600px];
   }
 
-  #outputPane {
+  .outputPane {
     @apply flex flex-col w-[400px] flex-[0_0_400px] overflow-auto m-4;
   }
 
-  #generatedCode {
+  .generatedCode {
     @apply h-1/2 bg-[rgb(247,240,228)];
   }
 
-  #output {
+  .buttonContainer {
     @apply h-1/2;
+  }
+
+  .button {
+    @apply text-white p-8 rounded-md w-full mt-8 font-bold text-3xl;
   }
 }

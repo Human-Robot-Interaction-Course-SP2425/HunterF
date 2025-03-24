@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import * as Blockly from 'blockly';
 import { BlocklyOptions } from 'blockly';
 import { javascriptGenerator } from 'blockly/javascript';
 import { generateSequenceBlock, generateSequenceCode } from './blocks/generate_sequence';
 import { createFrameBlock, createFrameCode } from './blocks/create_frame';
 import { setPositionBlock, setPositionCode } from './blocks/set_position';
+import { of } from 'rxjs';
+import { GesturesService } from '../services/gestures.service';
 
 @Component({
   selector: 'app-blockly',
@@ -13,8 +15,10 @@ import { setPositionBlock, setPositionCode } from './blocks/set_position';
   styleUrl: './blockly.component.css',
 })
 export class BlocklyComponent implements OnInit {
+  private gesturesService = inject(GesturesService);
   workspace!: Blockly.WorkspaceSvg;
-  generatedCode: string = '';
+  generatedCode = signal<string>('');
+  gestureNames = of<string[]>([]);
 
   constructor() {
     generateSequenceBlock();
@@ -25,32 +29,8 @@ export class BlocklyComponent implements OnInit {
     setPositionCode();
   }
 
-  setupCodeGeneration() {
-    this.workspace.addChangeListener((event: any) => {
-      if (this.workspace.isDragging()) return;
-      this.generateCode();
-    });
-  }
-
-  generateCode() {
-    if (this.workspace) {
-      const rawCode = javascriptGenerator.workspaceToCode(this.workspace);
-      
-      try {
-        const parsedCode = rawCode
-          .replace(/,(\s*})/g, '$1')
-          .replace(/,(\s*])/g, '$1'); 
-        
-        const jsonObj = JSON.parse(parsedCode);
-        this.generatedCode = JSON.stringify(jsonObj, null, 2);
-      } catch (e) {
-        console.error('Error parsing generated code:', e);
-        this.generatedCode = rawCode; 
-      }
-    }
-  }
-
   ngOnInit(): void {
+    this.gestureNames = this.gesturesService.getNames();
     const blocklyDiv = document.getElementById('blocklyDiv');
 
     const toolbox = {
@@ -83,5 +63,38 @@ export class BlocklyComponent implements OnInit {
     } as BlocklyOptions);
 
     this.setupCodeGeneration();
+  }
+
+  setupCodeGeneration() {
+    this.workspace.addChangeListener((event: any) => {
+      if (this.workspace.isDragging()) return;
+      this.generateCode();
+    });
+  }
+
+  generateCode() {
+    if (this.workspace) {
+      const rawCode = javascriptGenerator.workspaceToCode(this.workspace);
+      
+      try {
+        const parsedCode = rawCode
+          .replace(/,(\s*})/g, '$1')
+          .replace(/,(\s*])/g, '$1'); 
+        
+        const jsonObj = JSON.parse(parsedCode);
+        this.generatedCode.set(JSON.stringify(jsonObj, null, 2));
+      } catch (e) {
+        console.error('Error parsing generated code:', e);
+        this.generatedCode.set(rawCode); 
+      }
+    }
+  }
+
+  run() {
+    this.gesturesService.playNewGesture(this.generatedCode()).subscribe();
+  }
+
+  save() {
+    this.gesturesService.saveGesture(this.generatedCode()).subscribe();
   }
 }
