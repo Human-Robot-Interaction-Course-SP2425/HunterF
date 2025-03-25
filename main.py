@@ -4,26 +4,28 @@ from chatbot_pipline import *
 CAMERA_INDEX = 0  # run list_camera_ports() to choose which camera to use
 MIC_INDEX = 0  # run list_audio_devices() to choose which mic to use
 
-model_path = 'models/gesture_recognizer.task'
+model_path = "models/gesture_recognizer.task"
 
 hand_to_seq = {
     "Open_Palm": "reset",
     "Closed_Fist": "sad",
     "Pointing_Up": "no",
     "Thumb_Up": "happy",
-    "Thumb_Down": "fear"
+    "Thumb_Down": "fear",
 }
 
 
 # this function runs every time the model detects a gesture
-def on_detection(result: GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int):
+def on_detection(
+    result: GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int
+):
     # GestureRecognizerResult format:
     # https://ai.google.dev/edge/mediapipe/solutions/vision/gesture_recognizer/python#handle_and_display_results
 
     # getting the detected gesture name
     gesture_name = result.gestures[0][0].category_name
 
-    if gesture_name in hand_to_seq:  #checking if the gesture name is in the dict
+    if gesture_name in hand_to_seq:  # checking if the gesture name is in the dict
         print("gesture:", gesture_name, "-> running:", hand_to_seq[gesture_name])
         run_seq(hand_to_seq[gesture_name])  # running the corresponding sequence
 
@@ -59,11 +61,11 @@ def main():
             if len(model.out_frame) != 0:
                 frame = model.out_frame
             # Display the resulting frame
-            cv2.imshow('frame', frame)
+            cv2.imshow("frame", frame)
             model.out_frame = np.array([])
 
             # close camera when you press q
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
     # After the loop release the cap object
     vid.release()
@@ -71,5 +73,5 @@ def main():
     cv2.destroyAllWindows()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
