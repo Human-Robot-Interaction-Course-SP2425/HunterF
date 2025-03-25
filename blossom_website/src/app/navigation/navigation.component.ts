@@ -12,7 +12,7 @@ import { CommonModule } from '@angular/common';
 })
 export class NavigationComponent implements OnInit {
   private router = inject(Router);
-  private validRotues = routes.filter(route => route.path !== '**').map(route => route.path);
+  validRotues = signal<(string | undefined)[]>(routes.filter(route => route.path !== '**').map(route => route.path));
   activeRoute = signal<string>('')
 
   constructor() {}
@@ -23,7 +23,7 @@ export class NavigationComponent implements OnInit {
       map((event) => {
         const url = event.url.substring(1);
 
-        if (this.validRotues.includes(url)) {
+        if (this.validRotues().includes(url)) {
           this.activeRoute.set(url);
         } else {
           this.activeRoute.set('gestures');

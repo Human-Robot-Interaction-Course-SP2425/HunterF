@@ -13,5 +13,10 @@
         "target": "http://137.112.198.204:8000",
         "secure": false,
         "changeOrigin": true
+    },
+    "/videos": {
+        "target": "http://137.112.198.204:8000",
+        "secure": false,
+        "changeOrigin": true
     }
 }

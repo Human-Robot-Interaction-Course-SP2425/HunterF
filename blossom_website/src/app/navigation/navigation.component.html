@@ -1,4 +1,6 @@
 <div class="flex">
-    <button class="navigation-button" [ngClass]="{'active-navigation-button': activeRoute() === 'gestures'}" [routerLink]="['/gestures']">Gestures</button>
-    <button class="navigation-button" [ngClass]="{'active-navigation-button': activeRoute() === 'blockly'}" [routerLink]="['/blockly']">Blockly</button>
+  @for (route of validRotues(); track route) {
+    <button class="navigation-button" [ngClass]="{'active-navigation-button': activeRoute() === route}"
+      [routerLink]="[route]">{{route}}</button>
+  }
 </div>
