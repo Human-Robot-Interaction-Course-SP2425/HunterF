@@ -1,5 +1,5 @@
 import { Gesture, gesturesAtom } from "@/atoms/gesture.atoms";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import Loading from "@/components/Loading";
 import { ThemedText } from "@/components/ThemedText";
 import { useThemeColor } from "@/hooks/useThemeColor";
@@ -20,6 +20,8 @@ import {
   Animated,
   Platform,
 } from "react-native";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import GestureList from "@/components/gestures/GestureList";
 
 export default function Index() {
   const [name, setName] = useState("");
@@ -28,6 +30,9 @@ export default function Index() {
   const isMobile = width < 768;
   const scaleAnims = useRef<{ [key: string]: Animated.Value }>({}).current;
   const borderColor = useThemeColor({}, "border");
+  const inputBackground = useThemeColor({}, "inputBackground");
+  const textColor = useThemeColor({}, "text");
+  const colorScheme = useColorScheme();
 
   const getScaleAnim = (itemName: string) => {
     if (!scaleAnims[itemName]) {
@@ -56,11 +61,30 @@ export default function Index() {
     }
   };
 
-  const fetchGestures = async () => {
+  const fetchGestures = () => {
     setGestureData((prevState) => ({
       ...prevState,
       isLoading: true,
     }));
+
+    // fetch("http://localhost:8000/gestures")
+    //   .then((res) => res.json())
+    //   .then((data) => {
+    //     setGestureData((prevState) => ({
+    //       ...prevState,
+    //       data,
+    //     }));
+    //   })
+    //   .catch((err) => {
+    //     console.error(err);
+    //   })
+    //   .finally(() => {
+    //     setGestureData((prevState) => ({
+    //       ...prevState,
+    //       isLoading: false,
+    //     }));
+    //   });
+
     const testData = (() => {
       const data: Gesture[] = [];
       for (let i = 0; i < 60; i++) {
@@ -71,6 +95,7 @@ export default function Index() {
       }
       return data;
     })();
+
     setGestureData((prevState) => ({
       ...prevState,
       data: testData,
@@ -105,6 +130,20 @@ export default function Index() {
     }
   };
 
+  const filteredGestures = gestureData.data.filter((gesture) =>
+    gesture.name.toLowerCase().includes(name.toLowerCase())
+  );
+
+  const getHoverBackgroundColor = (pressed: boolean, hovered: boolean) => {
+    if (!pressed && !hovered) return undefined;
+
+    if (colorScheme === "dark") {
+      return "#1a2024";
+    } else {
+      return "#d8d8d8";
+    }
+  };
+
   return (
     <View style={[styles.container, { width: isMobile ? "90%" : "40%" }]}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -115,44 +154,23 @@ export default function Index() {
           Gestures List
         </ThemedText>
         <View style={styles.inputContainer}>
-          <AntDesign name="search1" size={20} style={styles.searchIcon} />
+          <AntDesign
+            name="search1"
+            size={20}
+            style={[styles.searchIcon, { color: textColor }]}
+          />
           <TextInput
-            style={[styles.input]}
+            style={[
+              styles.input,
+              { backgroundColor: inputBackground, color: textColor },
+            ]}
             value={name}
             onChangeText={onKeyPress}
-            placeholder="Enter name"
+            placeholder="Search for gestures"
             placeholderTextColor="#999"
           />
         </View>
-        {gestureData.isLoading ? (
-          <Loading />
-        ) : (
-          <FlatList
-            data={gestureData.data}
-            keyExtractor={(item) => item.name}
-            renderItem={({ item }) => (
-              <Animated.View
-                style={{ transform: [{ scale: getScaleAnim(item.name) }] }}
-              >
-                <Pressable
-                  style={({ hovered, pressed }) => [
-                    styles.gestureItem,
-                    hovered && styles.gestureItemHovered,
-                    pressed && styles.gestureItemPressed,
-                  ]}
-                  onPress={() => playGesture(item)}
-                  onPressIn={() => handlePressIn(item.name)}
-                  onPressOut={() => handlePressOut(item.name)}
-                >
-                  <Text style={styles.gestureName}>{item.name}</Text>
-                  <Text style={styles.gestureDuration}>{item.duration}</Text>
-                </Pressable>
-              </Animated.View>
-            )}
-            style={[styles.gesturesList, { borderColor }]}
-          />
-        )}
-
+        {gestureData.isLoading ? <Loading /> : <GestureList name={name} />}
         <Button
           label="RESET"
           action={resetButtonAction}
@@ -196,39 +214,27 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   input: {
-    borderWidth: 1,
     borderRadius: 10,
     padding: 10,
     paddingLeft: 40,
     width: "100%",
-    backgroundColor: "white",
   },
   searchIcon: {
     position: "absolute",
     left: 10,
     zIndex: 1,
-    color: "black",
   },
   gesturesList: {
     width: "100%",
     marginVertical: 20,
     borderWidth: 1,
     borderRadius: 10,
-    flex: 1,
   },
   gestureItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: "grey",
-    backgroundColor: "white",
-  },
-  gestureItemHovered: {
-    backgroundColor: "#f0f0f0",
-  },
-  gestureItemPressed: {
-    backgroundColor: "#f0f0f0",
   },
   gestureName: {
     fontSize: 16,
