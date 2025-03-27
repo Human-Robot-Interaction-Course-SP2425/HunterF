@@ -1,5 +1,5 @@
 import { SplashScreen, Stack } from "expo-router";
-import SplashScreenWrapper from "@/components/SplashScreen";
+import SplashScreenWrapper from "@/components/navigation/SplashScreen";
 import { useEffect } from "react";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useFonts } from "expo-font";

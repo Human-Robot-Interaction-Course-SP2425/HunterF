@@ -14,7 +14,7 @@ export const Colors = {
     icon: '#687076',
     tabIconDefault: '#687076',
     border: '#d8d8d8',
-    hover: '#e8e6e6',
+    hover: '#f0f2f5',
     tabIconSelected: tintColorLight,
 
     inputBackground: '#f0f2f5',

@@ -1,7 +1,7 @@
 import { Gesture } from "@/atoms/gesture.atoms";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { Animated, Pressable, StyleSheet, View } from "react-native";
-import { ThemedText } from "../ThemedText";
+import { ThemedText } from "../common/ThemedText";
 import { useState } from "react";
 
 type Props = {
