@@ -72,7 +72,10 @@ export default function GestureList({ name }: Props) {
       keyExtractor={(item) => item.name}
       style={[styles.container, { borderColor }]}
       renderItem={({ item, index }) => (
-        <GestureItem data={item} index={index} />
+        <GestureItem
+          data={item}
+          isLast={index === filteredGestures.length - 1}
+        />
       )}
     />
   );

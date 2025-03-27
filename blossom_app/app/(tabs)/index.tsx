@@ -6,60 +6,25 @@ import { useThemeColor } from "@/hooks/useThemeColor";
 import { AntDesign } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useAtom } from "jotai";
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import {
   StyleSheet,
-  Text,
   TextInput,
   View,
   useWindowDimensions,
   TouchableWithoutFeedback,
   Keyboard,
-  FlatList,
-  Pressable,
-  Animated,
-  Platform,
 } from "react-native";
-import { useColorScheme } from "@/hooks/useColorScheme";
 import GestureList from "@/components/gestures/GestureList";
+import GestureInput from "@/components/gestures/GestureInput";
 
 export default function Index() {
   const [name, setName] = useState("");
   const [gestureData, setGestureData] = useAtom(gesturesAtom);
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
-  const scaleAnims = useRef<{ [key: string]: Animated.Value }>({}).current;
-  const borderColor = useThemeColor({}, "border");
   const inputBackground = useThemeColor({}, "inputBackground");
   const textColor = useThemeColor({}, "text");
-  const colorScheme = useColorScheme();
-
-  const getScaleAnim = (itemName: string) => {
-    if (!scaleAnims[itemName]) {
-      scaleAnims[itemName] = new Animated.Value(1);
-    }
-    return scaleAnims[itemName];
-  };
-
-  const handlePressIn = (itemName: string) => {
-    if (Platform.OS === "web") {
-      Animated.timing(getScaleAnim(itemName), {
-        toValue: 0.98,
-        useNativeDriver: true,
-        duration: 20,
-      }).start();
-    }
-  };
-
-  const handlePressOut = (itemName: string) => {
-    if (Platform.OS === "web") {
-      Animated.timing(getScaleAnim(itemName), {
-        toValue: 1,
-        duration: 20,
-        useNativeDriver: true,
-      }).start();
-    }
-  };
 
   const fetchGestures = () => {
     setGestureData((prevState) => ({
@@ -113,34 +78,11 @@ export default function Index() {
     setName(text);
   };
 
-  const playGesture = async (gesture: Gesture) => {
-    try {
-      await fetch(`http://localhost:8000/s/${gesture.name}`);
-      alert(`Playing gesture: ${gesture.name}`);
-    } catch (error) {
-      alert(`Failed to play gesture: ${gesture.name}`);
-    }
-  };
-
   const resetButtonAction = async () => {
     try {
       await fetch("http://localhost:8000/reset");
     } catch (error) {
       alert("Failed to reset!");
-    }
-  };
-
-  const filteredGestures = gestureData.data.filter((gesture) =>
-    gesture.name.toLowerCase().includes(name.toLowerCase())
-  );
-
-  const getHoverBackgroundColor = (pressed: boolean, hovered: boolean) => {
-    if (!pressed && !hovered) return undefined;
-
-    if (colorScheme === "dark") {
-      return "#1a2024";
-    } else {
-      return "#d8d8d8";
     }
   };
 
@@ -153,27 +95,11 @@ export default function Index() {
         <ThemedText type="title" style={styles.header}>
           Gestures List
         </ThemedText>
-        <View style={styles.inputContainer}>
-          <AntDesign
-            name="search1"
-            size={20}
-            style={[styles.searchIcon, { color: textColor }]}
-          />
-          <TextInput
-            style={[
-              styles.input,
-              { backgroundColor: inputBackground, color: textColor },
-            ]}
-            value={name}
-            onChangeText={onKeyPress}
-            placeholder="Search for gestures"
-            placeholderTextColor="#999"
-          />
-        </View>
+        <GestureInput name={name} onKeyPress={onKeyPress} />
         {gestureData.isLoading ? <Loading /> : <GestureList name={name} />}
         <Button
           label="RESET"
-          action={resetButtonAction}
+          onPress={resetButtonAction}
           containerStyle={styles.resetButtonContainerStyle}
           labelStyle={styles.resetButtonLabelStyle}
           hoveredStyle={styles.resetButtonHoveredStyle}
@@ -206,43 +132,6 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 8,
-  },
-  inputContainer: {
-    width: "100%",
-    flexDirection: "row",
-    alignItems: "center",
-    position: "relative",
-  },
-  input: {
-    borderRadius: 10,
-    padding: 10,
-    paddingLeft: 40,
-    width: "100%",
-  },
-  searchIcon: {
-    position: "absolute",
-    left: 10,
-    zIndex: 1,
-  },
-  gesturesList: {
-    width: "100%",
-    marginVertical: 20,
-    borderWidth: 1,
-    borderRadius: 10,
-  },
-  gestureItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 15,
-    borderBottomWidth: 1,
-  },
-  gestureName: {
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  gestureDuration: {
-    fontSize: 16,
-    color: "#666",
   },
   resetButtonContainerStyle: {
     backgroundColor: "#800000",

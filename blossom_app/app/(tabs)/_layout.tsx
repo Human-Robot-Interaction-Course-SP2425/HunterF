@@ -4,49 +4,53 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useWindowDimensions, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useThemeColor } from "@/hooks/useThemeColor";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import TabBar from "@/components/navigation/TabBar";
 
 export default function TabLayout() {
   const { width } = useWindowDimensions();
   const tabBarPosition = width > 600 ? "top" : "bottom";
+  const isTopBarPosition = tabBarPosition === "top";
   const backgroundColor = useThemeColor({}, "background");
-  const textColor = useThemeColor({}, "text");
-  const iconColor = useThemeColor({}, "icon");
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView
+      edges={["top"]}
+      style={[
+        styles.safeArea,
+        { paddingBottom: isTopBarPosition ? 0 : 20, backgroundColor },
+      ]}
+    >
       <Tabs
+        tabBar={(props) => (
+          <TabBar {...props} isTopBarPosition={isTopBarPosition} />
+        )}
         screenOptions={{
           tabBarPosition,
           headerShown: false,
-          tabBarStyle: [styles.tabBar, { backgroundColor }],
-          tabBarActiveTintColor: textColor,
-          tabBarInactiveTintColor: iconColor,
         }}
       >
         <Tabs.Screen
           name="index"
           options={{
-            title: "Gestures",
-            tabBarIcon: ({ color }) => (
-              <MaterialCommunityIcons name="robot" color={color} size={24} />
+            tabBarIcon: ({ focused, color }) => (
+              <MaterialCommunityIcons name="robot" color={color} size={30} />
             ),
           }}
         />
         <Tabs.Screen
           name="blockly"
           options={{
-            title: "Blockly",
-            tabBarIcon: ({ color }) => (
-              <MaterialCommunityIcons name="cube" color={color} size={24} />
+            tabBarIcon: ({ focused, color }) => (
+              <MaterialCommunityIcons name="cube" color={color} size={30} />
             ),
           }}
         />
         <Tabs.Screen
           name="videos"
           options={{
-            title: "Videos",
-            tabBarIcon: ({ color }) => (
-              <MaterialCommunityIcons name="youtube" color={color} size={24} />
+            tabBarIcon: ({ focused, color }) => (
+              <MaterialCommunityIcons name="youtube" color={color} size={30} />
             ),
           }}
         />

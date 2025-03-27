@@ -1,29 +1,18 @@
 import { Gesture } from "@/atoms/gesture.atoms";
-import { useColorScheme } from "@/hooks/useColorScheme";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import {
-  Animated,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableHighlight,
-  View,
-} from "react-native";
+import { Animated, Pressable, StyleSheet, View } from "react-native";
 import { ThemedText } from "../ThemedText";
 import { useState } from "react";
-import { useTheme } from "@react-navigation/native";
 
 type Props = {
   data: Gesture;
-  index: number;
+  isLast: boolean;
 };
 
-export default function GestureItem({ data, index }: Props) {
-  const theme = useTheme();
+export default function GestureItem({ data, isLast }: Props) {
   const [scaleValue] = useState(new Animated.Value(1));
-  const colorScheme = useColorScheme();
   const borderColor = useThemeColor({}, "border");
+  const hoverColor = useThemeColor({}, "hover");
 
   const onPress = async () => {
     try {
@@ -36,16 +25,22 @@ export default function GestureItem({ data, index }: Props) {
 
   return (
     <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
-      <TouchableHighlight
-        style={styles.container}
-        underlayColor={theme.dark ? "#1a2024" : "#d8d8d8"}
+      <Pressable
+        style={({ pressed, hovered }) => [
+          styles.container,
+          {
+            borderColor,
+            borderBottomWidth: isLast ? 0 : 1,
+            backgroundColor: pressed || hovered ? hoverColor : "transparent",
+          },
+        ]}
         onPress={onPress}
       >
         <View style={styles.content}>
           <ThemedText type="defaultSemiBold">{data.name}</ThemedText>
           <ThemedText type="default">{data.duration}s</ThemedText>
         </View>
-      </TouchableHighlight>
+      </Pressable>
     </Animated.View>
   );
 }
@@ -53,7 +48,6 @@ export default function GestureItem({ data, index }: Props) {
 const styles = StyleSheet.create({
   container: {
     padding: 15,
-    borderBottomWidth: 1,
   },
   content: {
     flexDirection: "row",

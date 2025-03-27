@@ -1,3 +1,4 @@
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { useRef } from "react";
 import {
   StyleSheet,
@@ -11,7 +12,7 @@ import {
 
 type Props = {
   label: string;
-  action: () => void;
+  onPress: () => void;
   containerStyle?: ViewStyle;
   buttonStyle?: ViewStyle;
   labelStyle?: TextStyle;
@@ -21,7 +22,7 @@ type Props = {
 
 export default function Button({
   label,
-  action,
+  onPress,
   containerStyle,
   buttonStyle,
   labelStyle,
@@ -29,26 +30,27 @@ export default function Button({
   hoveredStyle,
 }: Props) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const borderColor = useThemeColor({}, "border");
 
-  const handlePressIn = () => {
-    if (Platform.OS === "web") {
-      Animated.timing(scaleAnim, {
-        toValue: 0.98,
-        useNativeDriver: true,
-        duration: 20,
-      }).start();
-    }
-  };
+  // const handlePressIn = () => {
+  //   if (Platform.OS === "web") {
+  //     Animated.timing(scaleAnim, {
+  //       toValue: 0.98,
+  //       useNativeDriver: true,
+  //       duration: 20,
+  //     }).start();
+  //   }
+  // };
 
-  const handlePressOut = () => {
-    if (Platform.OS === "web") {
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 20,
-        useNativeDriver: true,
-      }).start();
-    }
-  };
+  // const handlePressOut = () => {
+  //   if (Platform.OS === "web") {
+  //     Animated.timing(scaleAnim, {
+  //       toValue: 1,
+  //       duration: 20,
+  //       useNativeDriver: true,
+  //     }).start();
+  //   }
+  // };
 
   return (
     <Animated.View
@@ -56,6 +58,7 @@ export default function Button({
         { transform: [{ scale: scaleAnim }] },
         styles.buttonContainer,
         containerStyle,
+        { borderColor },
       ]}
     >
       <Pressable
@@ -65,9 +68,9 @@ export default function Button({
           hovered && hoveredStyle,
           pressed && pressedStyle,
         ]}
-        onPress={() => action()}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        onPress={onPress}
+        // onPressIn={handlePressIn}
+        // onPressOut={handlePressOut}
       >
         <Text style={[styles.buttonLabel, labelStyle]}>{label}</Text>
       </Pressable>

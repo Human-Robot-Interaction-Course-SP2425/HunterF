@@ -18,7 +18,7 @@ export const BlossomLightTheme: Theme = {
   dark: false,
   colors: {
     primary: '#800000',
-    background: '#f2f2f2',
+    background: '#ffffff',
     card: '#ffffff',
     text: '#1c1c1e',
     border: '#d8d8d8',
