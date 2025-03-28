@@ -4,7 +4,10 @@ import WebView from "react-native-webview";
 import * as BlocklyJS from "blockly";
 import { useAtom } from "jotai";
 import { blocklyCodeAtom } from "@/atoms/blockly.atom";
-import { customBlocksDefinitions } from "@/constants/BlocklyContent";
+import {
+  customBlocksDefinitions,
+  parseBlocklyCode,
+} from "@/constants/BlocklyContent";
 
 type Props = {
   workspaceConfiguration: BlocklyJS.BlocklyOptions;
@@ -44,7 +47,6 @@ export default function ComponentWithHook({ workspaceConfiguration }: Props) {
       function sendToReactNative(type, data) {
         try {
           const message = JSON.stringify({ type, ...data });
-          console.log('Sending message to RN:', message);
           window.ReactNativeWebView.postMessage(message);
         } catch (e) {
           console.error('Error sending message:', e);
@@ -58,24 +60,16 @@ export default function ComponentWithHook({ workspaceConfiguration }: Props) {
           sendToReactNative('setup', { status: 'complete' });
           
           workspace.addChangeListener(function(event) {
-            if (event.type === 'viewport_change' || 
-                event.type === 'drag' || 
-                event.type === 'move' ||
-                event.type === 'selected') {
-              return;
-            }
+            if (workspace.isDragging()) return;
             
             try {
               const code = Blockly.JavaScript.workspaceToCode(workspace);
-              console.log('Generated code:', code);
               sendToReactNative('workspaceChange', { code });
             } catch (e) {
-              console.error("Error generating code:", e);
               sendToReactNative('error', { message: e.toString() });
             }
           });
         } catch (e) {
-          console.error('Error setting up Blockly:', e);
           sendToReactNative('error', { message: e.toString() });
         }
 
@@ -89,11 +83,10 @@ export default function ComponentWithHook({ workspaceConfiguration }: Props) {
 </html>`;
 
   const handleMessage = (event: any) => {
-    console.log("Received message from WebView:", event.nativeEvent.data);
     try {
       const data: MessageData = JSON.parse(event.nativeEvent.data);
       if (data.type === "workspaceChange" && data.code) {
-        setBlocklyCode({ code: data.code });
+        setBlocklyCode({ code: parseBlocklyCode(data.code) });
       } else if (data.type === "error") {
         console.error("WebView error:", data.message);
       } else if (data.type === "setup") {

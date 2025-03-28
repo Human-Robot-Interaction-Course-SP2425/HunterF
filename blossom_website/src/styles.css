@@ -1,7 +1,0 @@
-@import "tailwindcss";
-
-@layer base {
-    button {
-        @apply cursor-pointer active:scale-98 transition-all duration-100;
-    }
-}

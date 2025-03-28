@@ -1,6 +1,9 @@
 import { StyleSheet } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
-import ConfigFiles, { initCustomBlocks } from "@/constants/BlocklyContent";
+import ConfigFiles, {
+  initCustomBlocks,
+  parseBlocklyCode,
+} from "@/constants/BlocklyContent";
 import * as BlocklyJS from "blockly";
 import { CSSProperties } from "react";
 import BlocklyOutput from "@/components/blockly/BlocklyOutput";
@@ -66,7 +69,8 @@ export default function Index() {
 
       workspace.addChangeListener((event: any) => {
         if (workspace.isDragging()) return;
-        setRawCode(javascriptGenerator.workspaceToCode(workspace));
+        const code = javascriptGenerator.workspaceToCode(workspace);
+        setRawCode(parseBlocklyCode(code));
       });
 
       return () => {

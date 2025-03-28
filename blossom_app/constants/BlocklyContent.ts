@@ -43,6 +43,20 @@ const ConfigFiles = {
 
 export default ConfigFiles;
 
+export const parseBlocklyCode = (code: string) => {
+  try {
+    const parsedCode = code
+    .replace(/,(\s*})/g, '$1')
+    .replace(/,(\s*])/g, '$1'); 
+  
+  const jsonObj = JSON.parse(parsedCode);
+  return JSON.stringify(jsonObj, null, 2)
+  } catch (e) {
+    console.log(e);
+    return code;
+  }
+}
+
 
 export const customBlocksDefinitions = `
     // Generate Sequence Block

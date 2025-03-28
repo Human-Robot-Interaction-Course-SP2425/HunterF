@@ -1,6 +1,0 @@
-<div class="flex">
-  @for (route of validRotues(); track route) {
-    <button class="navigation-button" [ngClass]="{'active-navigation-button': activeRoute() === route}"
-      [routerLink]="[route]">{{route}}</button>
-  }
-</div>
