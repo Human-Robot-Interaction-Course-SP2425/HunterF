@@ -1,5 +1,4 @@
 import { atom } from 'jotai'
-import { Gesture } from 'react-native-gesture-handler';
 
 export interface Gesture {
   name: string;

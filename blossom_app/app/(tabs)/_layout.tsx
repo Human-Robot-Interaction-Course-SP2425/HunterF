@@ -39,7 +39,7 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="blockly"
+          name="(blockly)"
           options={{
             tabBarIcon: ({ focused, color }) => (
               <MaterialCommunityIcons name="cube" color={color} size={30} />
@@ -50,7 +50,7 @@ export default function TabLayout() {
           name="videos"
           options={{
             tabBarIcon: ({ focused, color }) => (
-              <MaterialCommunityIcons name="youtube" color={color} size={30} />
+              <MaterialCommunityIcons name="camera" color={color} size={30} />
             ),
           }}
         />

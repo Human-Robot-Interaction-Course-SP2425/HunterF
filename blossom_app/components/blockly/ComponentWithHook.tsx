@@ -1,60 +1,27 @@
-import { Platform, StyleSheet } from "react-native";
-import React, { useEffect } from "react";
+import { Platform, StyleSheet, View, Text } from "react-native";
+import React, { useRef, useState, useEffect } from "react";
 import WebView from "react-native-webview";
-import ConfigFiles from "@/constants/BlocklyContent";
-import { useBlocklyNativeEditor } from "@react-blockly/core";
+import * as BlocklyJS from "blockly";
+import { useAtom } from "jotai";
+import { blocklyCodeAtom } from "@/atoms/blockly.atom";
+import { customBlocksDefinitions } from "@/constants/BlocklyContent";
 
-export default function ComponentWithHook(props: any) {
-  const { workspaceConfiguration } = props;
-  const { editorRef, init, dispose, onMessage } = useBlocklyNativeEditor({
-    workspaceConfiguration,
-    initial: ConfigFiles.INITIAL_XML,
-    onError: (error) => console.error("Blockly error:", error),
-    platform: Platform.OS,
-  });
+type Props = {
+  workspaceConfiguration: BlocklyJS.BlocklyOptions;
+};
 
-  useEffect(() => {
-    return () => {
-      dispose();
-    };
-  }, []);
+type MessageData = {
+  type: "workspaceChange" | "error" | "setup";
+  code?: string;
+  message?: string;
+  status?: "complete";
+};
 
-  const onLoadEnd = () => {
-    console.log("WebView loaded");
-    init({
-      workspaceConfiguration,
-      initial: ConfigFiles.INITIAL_XML,
-    });
-  };
+export default function ComponentWithHook({ workspaceConfiguration }: Props) {
+  const editorRef = useRef<WebView>(null);
+  const [blocklyCode, setBlocklyCode] = useAtom(blocklyCodeAtom);
 
-  const handleWebViewError = (syntheticEvent: any) => {
-    const { nativeEvent } = syntheticEvent;
-    console.warn("WebView error: ", nativeEvent);
-  };
-
-  // Add toolbox dimensions to the configuration
-  const configWithToolbox = {
-    ...workspaceConfiguration,
-    horizontalLayout: true,
-    toolboxPosition: "top",
-    trashcan: true,
-    move: {
-      scrollbars: true,
-      drag: true,
-      wheel: true,
-    },
-    grid: {
-      spacing: 20,
-      length: 3,
-      colour: "#ccc",
-      snap: true,
-    },
-    zoom: {
-      pinch: true,
-    },
-  };
-
-  const serializedConfig = JSON.stringify(configWithToolbox);
+  const serializedConfig = JSON.stringify(workspaceConfiguration);
 
   const blocklyHTML = `
 <!DOCTYPE html>
@@ -63,119 +30,103 @@ export default function ComponentWithHook(props: any) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+    <script src="https://unpkg.com/blockly/javascript_compressed"></script>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       #blocklyDiv { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
-      
-      /* Toolbar styling */
-      .blocklyToolboxDiv {
-        background-color: #f0f0f0;
-        border-right: 1px solid #ddd;
-        width: 100% !important;
-      }
-      
-      /* For horizontal toolbar */
-      .blocklyToolboxHorizontal {
-        height: 100px !important;
-        width: 100% !important;
-      }
-
-      /* Flyout styling */
-      .blocklyFlyout {
-        background-color: #fff;
-        max-height: 100px !important;
-      }
-      
-      .blocklyFlyoutButton {
-        fill: #fff;
-      }
-
-      /* Fixed block sizes */
-      .blocklyText {
-        font-size: 12px !important;
-      }
-      
-      .blocklyBlockCanvas {
-        min-width: 0 !important;
-      }
-
-      .blocklyMainBackground {
-        stroke-width: 0;
-      }
-
-      /* Make blocks a fixed size */
-      .blocklyBlock {
-        min-width: 40px !important;
-        min-height: 24px !important;
-      }
-
-      /* Adjust input fields to fixed size */
-      .blocklyEditableText rect {
-        min-width: 60px !important;
-        height: 24px !important;
-      }
-      
-      /* Optional: Style the scrollbar */
-      .blocklyToolboxDiv::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-      
-      .blocklyToolboxDiv::-webkit-scrollbar-track {
-        background: #f1f1f1;
-      }
-      
-      .blocklyToolboxDiv::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 4px;
-      }
     </style>
   </head>
   <body>
     <div id="blocklyDiv"></div>
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const workspace = Blockly.inject('blocklyDiv', ${serializedConfig});
-        
-        // Disable workspace scaling
-        workspace.setScale(1.0);
-        workspace.zoomToFit = function() { return; }; // Disable zoom to fit
-        
-        workspace.addChangeListener(function(event) {
-          window.ReactNativeWebView.postMessage(JSON.stringify({
-            type: 'workspaceChange',
-            xml: Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(workspace))
-          }));
-        });
+    <script>      
+      ${customBlocksDefinitions}
 
-        if ('${ConfigFiles.INITIAL_XML}') {
-          const xml = Blockly.Xml.textToDom('${ConfigFiles.INITIAL_XML}');
-          Blockly.Xml.domToWorkspace(xml, workspace);
+      function sendToReactNative(type, data) {
+        try {
+          const message = JSON.stringify({ type, ...data });
+          console.log('Sending message to RN:', message);
+          window.ReactNativeWebView.postMessage(message);
+        } catch (e) {
+          console.error('Error sending message:', e);
         }
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        try {
+          const workspace = Blockly.inject('blocklyDiv', ${serializedConfig});
+          
+          sendToReactNative('setup', { status: 'complete' });
+          
+          workspace.addChangeListener(function(event) {
+            if (event.type === 'viewport_change' || 
+                event.type === 'drag' || 
+                event.type === 'move' ||
+                event.type === 'selected') {
+              return;
+            }
+            
+            try {
+              const code = Blockly.JavaScript.workspaceToCode(workspace);
+              console.log('Generated code:', code);
+              sendToReactNative('workspaceChange', { code });
+            } catch (e) {
+              console.error("Error generating code:", e);
+              sendToReactNative('error', { message: e.toString() });
+            }
+          });
+        } catch (e) {
+          console.error('Error setting up Blockly:', e);
+          sendToReactNative('error', { message: e.toString() });
+        }
+
+        document.addEventListener('contextmenu', function(e) {
+          e.preventDefault();
+          return false;
+        });
       });
     </script>
   </body>
 </html>`;
 
+  const handleMessage = (event: any) => {
+    console.log("Received message from WebView:", event.nativeEvent.data);
+    try {
+      const data: MessageData = JSON.parse(event.nativeEvent.data);
+      if (data.type === "workspaceChange" && data.code) {
+        setBlocklyCode({ code: data.code });
+      } else if (data.type === "error") {
+        console.error("WebView error:", data.message);
+      } else if (data.type === "setup") {
+        console.log("Blockly setup complete");
+      }
+    } catch (e) {
+      console.error("Error handling message:", e);
+    }
+  };
+
   return (
-    <WebView
-      style={{ flex: 1, backgroundColor: "#ffffff" }}
-      ref={editorRef}
-      originWhitelist={["*"]}
-      source={{
-        html: blocklyHTML,
-        baseUrl: Platform.OS === "android" ? "" : undefined,
-      }}
-      onMessage={onMessage}
-      onLoadEnd={onLoadEnd}
-      onError={handleWebViewError}
-      javaScriptEnabled={true}
-      domStorageEnabled={true}
-      startInLoadingState={true}
-      scalesPageToFit={true}
-      mixedContentMode="compatibility"
-      allowUniversalAccessFromFileURLs={true}
-    />
+    <>
+      <WebView
+        style={{ flex: 1, backgroundColor: "#ffffff" }}
+        ref={editorRef}
+        originWhitelist={["*"]}
+        source={{
+          html: blocklyHTML,
+          baseUrl: Platform.OS === "android" ? "" : undefined,
+        }}
+        onMessage={handleMessage}
+        onError={(syntheticEvent) => {
+          const { nativeEvent } = syntheticEvent;
+          console.warn("WebView error: ", nativeEvent);
+        }}
+        javaScriptEnabled={true}
+        domStorageEnabled={true}
+        startInLoadingState={true}
+        scalesPageToFit={true}
+        mixedContentMode="compatibility"
+        allowUniversalAccessFromFileURLs={true}
+      />
+    </>
   );
 }
 

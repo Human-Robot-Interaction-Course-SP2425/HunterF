@@ -3,13 +3,11 @@ import Button from "@/components/common/Button";
 import Loading from "@/components/common/Loading";
 import { ThemedText } from "@/components/common/ThemedText";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { AntDesign } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import { useAtom } from "jotai";
 import { useState, useCallback } from "react";
 import {
   StyleSheet,
-  TextInput,
   View,
   useWindowDimensions,
   TouchableWithoutFeedback,

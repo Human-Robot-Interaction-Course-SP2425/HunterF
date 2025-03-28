@@ -1,27 +1,28 @@
-import ConfigFiles from "@/constants/BlocklyContent";
+import { View, StyleSheet } from "react-native";
 import ComponentWithHook from "@/components/blockly/ComponentWithHook";
+import * as BlocklyJS from "blockly";
+import ConfigFiles from "@/constants/BlocklyContent";
 
-export default function Blockly() {
-  const workspaceConfiguration = {
+export default function Index() {
+  const workspaceConfiguration: BlocklyJS.BlocklyOptions = {
     grid: {
       spacing: 20,
       length: 3,
       colour: "#ccc",
       snap: true,
     },
-    toolbox: ConfigFiles.INITIAL_TOOLBOX_JSON,
+    toolbox: ConfigFiles.TOOLBOX,
     collapse: false,
     comments: true,
     css: true,
     disable: true,
-    horizontalLayout: false,
+    horizontalLayout: true,
     maxBlocks: Infinity,
     maxInstances: { "*": Infinity },
     modalInputs: true,
     move: {
       scrollbars: true,
       drag: true,
-      wheel: true,
     },
     oneBasedIndex: true,
     readOnly: false,
@@ -31,20 +32,22 @@ export default function Blockly() {
     scrollbars: true,
     sounds: true,
     theme: "default",
-    toolboxPosition: "start",
+    toolboxPosition: "top",
     trashcan: true,
     maxTrashcanContents: 32,
     plugins: {},
-    zoom: {
-      controls: true,
-      wheel: true,
-      startScale: 1.0,
-      maxScale: 3,
-      minScale: 0.3,
-      scaleSpeed: 1.2,
-      pinch: true,
-    },
   };
 
-  return <ComponentWithHook workspaceConfiguration={workspaceConfiguration} />;
+  return (
+    <View style={styles.container}>
+      <ComponentWithHook workspaceConfiguration={workspaceConfiguration} />
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+});
