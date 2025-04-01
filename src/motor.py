@@ -1,4 +1,4 @@
-class Motor:
+class Motor:  # UNUSED
     id = 0
     pos = 0
     pos_offset = 0

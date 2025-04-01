@@ -25,11 +25,12 @@ import time
 import uuid
 import requests
 import logging
+
 # seed time for better randomness
 random.seed(time.time())
 
 # turn off Flask logging
-log = logging.getLogger('werkzeug')
+log = logging.getLogger("werkzeug")
 log.setLevel(logging.ERROR)
 
 # main robot
@@ -52,6 +53,7 @@ prompt = "(l)ist sequences / (s)equence play / (q)uit: "
 
 loaded_seq = []
 
+
 class SequenceRobot(robot.Robot):
     """
     Robot that loads, plays, and records sequences
@@ -60,8 +62,8 @@ class SequenceRobot(robot.Robot):
 
     def __init__(self, name, config):
         # init robot
-        
-        br=57600
+
+        br = 57600
         super(SequenceRobot, self).__init__(config, br, name)
         # save configuration (list of motors for PyPot)
         self.config = config
@@ -83,7 +85,7 @@ class SequenceRobot(robot.Robot):
         TODO - clean this up - try glob or os.walk
         """
         # get directory
-        seq_dir = './src/sequences/%s' % self.name
+        seq_dir = "./src/sequences/%s" % self.name
         # make sure that directory for robot's seqs exist
         if not os.path.exists(seq_dir):
             os.makedirs(seq_dir)
@@ -94,22 +96,22 @@ class SequenceRobot(robot.Robot):
         # bar = Bar('Importing sequences',max=len(seq_names),fill='=')
         for seq in seq_names:
             # bar.next()
-            subseq_dir = seq_dir + '/' + seq
+            subseq_dir = seq_dir + "/" + seq
 
             # is sequence, load
-            if (seq[-5:] == '.json' and subseq_dir not in loaded_seq):
+            if seq[-5:] == ".json" and subseq_dir not in loaded_seq:
                 # print("Loading {}".format(seq))
                 self.load_sequence(subseq_dir)
                 # loaded_seq.append(subseq_dir)
 
             # is subdirectory, go in and load all sequences
             # skips subdirectory if name is 'ignore'
-            elif os.path.isdir(subseq_dir) and not ('ignore' in subseq_dir):
+            elif os.path.isdir(subseq_dir) and not ("ignore" in subseq_dir):
                 # go through all sequence
                 for s in os.listdir(subseq_dir):
                     # is sequence, load
-                    seq_name = "%s/%s"%(subseq_dir,s)
-                    if (s[-5:] == '.json' and seq_name not in loaded_seq):
+                    seq_name = "%s/%s" % (subseq_dir, s)
+                    if s[-5:] == ".json" and seq_name not in loaded_seq:
                         # print("Loading {}".format(s))
                         self.load_sequence(seq_name)
                         # loaded_seq.append(seq_name)
@@ -119,7 +121,7 @@ class SequenceRobot(robot.Robot):
         timeMap = [None] * len(keys)
         for i in range(0, len(keys)):
             frameLst = vals[i].frames
-            if len(frameLst)!= 0:
+            if len(frameLst) != 0:
                 timeAmnt = frameLst[-1].millis
                 timeMap[i] = [keys[i], str(timeAmnt / 1000)]
         return timeMap
@@ -150,7 +152,8 @@ class SequenceRobot(robot.Robot):
 
         # start playback thread
         self.seq_thread = robot.sequence.SequencePrimitive(
-            self, seq, self.seq_stop, speed=speed, amp=amp, post=post)
+            self, seq, self.seq_stop, speed=speed, amp=amp, post=post
+        )
         self.seq_thread.start()
 
         # return thread
@@ -169,13 +172,20 @@ class SequenceRobot(robot.Robot):
         self.seq_stop = threading.Event()
 
         # loop if idler
-        if ('idle' in seq):
-            seq = seq.replace('idle', '').replace(' ', '').replace('/', '')
+        if "idle" in seq:
+            seq = seq.replace("idle", "").replace(" ", "").replace("/", "")
             idler = True
 
         # start playback thread
         self.seq_thread = robot.sequence.SequencePrimitive(
-            self, self.seq_list[seq], self.seq_stop, idler=idler, speed=self.speed, amp=self.amp, post=self.post)      
+            self,
+            self.seq_list[seq],
+            self.seq_stop,
+            idler=idler,
+            speed=self.speed,
+            amp=self.amp,
+            post=self.post,
+        )
         self.seq_thread.start()
         # return thread
         return self.seq_thread
@@ -192,10 +202,9 @@ class SequenceRobot(robot.Robot):
         self.rec_thread.start()
 
 
-
-'''
+"""
 CLI Code
-'''
+"""
 
 
 def start_cli(robot):
@@ -211,15 +220,15 @@ def run_cli(robot):
     """
     Handle CLI inputs indefinitely
     """
-    while(1):
+    while 1:
         # get command string
         cmd_str = input(prompt)
-        cmd_string = re.split('/| ', cmd_str)
+        cmd_string = re.split("/| ", cmd_str)
         cmd = cmd_string[0]
 
         # parse to get argument
         args = None
-        if (len(cmd_string) > 1):
+        if len(cmd_string) > 1:
             args = cmd_string[1:]
 
         # handle the command and arguments
@@ -237,7 +246,7 @@ def handle_quit():
     print("Exiting...")
     for bot in robots:
         # clean up tmp dirs and close robots
-        tmp_dir = './src/sequences/%s/tmp' % bot.name
+        tmp_dir = "./src/sequences/%s/tmp" % bot.name
         if os.path.exists(tmp_dir):
             shutil.rmtree(tmp_dir)
         bot.robot.close()
@@ -252,7 +261,9 @@ def handle_quit():
     os.kill(os.getpid(), signal.SIGTERM)
 
 
-last_cmd,last_args = 'rand',[]
+last_cmd, last_args = "rand", []
+
+
 def handle_input(robot, cmd, args=[]):
     """
     handle CLI input
@@ -269,37 +280,37 @@ def handle_input(robot, cmd, args=[]):
     # print(cmd, args)
     # separator between sequence and idler
     global last_cmd, last_args
-    idle_sep = '='
+    idle_sep = "="
     # play sequence
-    if cmd == 's' or cmd == 'rand':
+    if cmd == "s" or cmd == "rand":
         # if random, choose random sequence
-        if cmd == 'rand':
+        if cmd == "rand":
             args = [random.choice(robot.seq_list.keys())]
         # default to not idling
         # idler = False
         # get sequence if not given
         if not args:
-            args = ['']
+            args = [""]
             # args[0] = raw_input('Sequence: ')
-            seq = input('Sequence: ')
+            seq = input("Sequence: ")
         else:
             seq = args[0]
         # check if should be idler
         # elif (args[0] == 'idle'):
         #     args[0] = args[1]
         #     idler = True
-        idle_seq = ''
-        if (idle_sep in seq):
-            (seq, idle_seq) = re.split(idle_sep + '| ', seq)
+        idle_seq = ""
+        if idle_sep in seq:
+            (seq, idle_seq) = re.split(idle_sep + "| ", seq)
 
         # catch hardcoded idle sequences
-        if(seq == 'random'):
+        if seq == "random":
             random.seed(time.time())
-            seq = random.choice(['calm', 'slowlook', 'sideside'])
-        if(idle_seq == 'random'):
+            seq = random.choice(["calm", "slowlook", "sideside"])
+        if idle_seq == "random":
             random.seed(time.time())
-            idle_seq = random.choice(['calm', 'slowlook', 'sideside'])
-        if (seq == 'calm' or seq == 'slowlook' or seq == 'sideside'):
+            idle_seq = random.choice(["calm", "slowlook", "sideside"])
+        if seq == "calm" or seq == "slowlook" or seq == "sideside":
             idle_seq = seq
 
         # speed = 1.0
@@ -320,8 +331,8 @@ def handle_input(robot, cmd, args=[]):
                 bot.seq_stop.set()
                 seq_thread = bot.play_recording(seq, idler=False)
             # go into idler
-            if (idle_seq != ''):
-                while (seq_thread.is_alive()):
+            if idle_seq != "":
+                while seq_thread.is_alive():
                     # sleep necessary to smooth motion
                     time.sleep(0.1)
                     continue
@@ -342,86 +353,99 @@ def handle_input(robot, cmd, args=[]):
     #     stop_record(robot, input("Seq name: "))
 
     # reload gestures
-    elif cmd == 'r':
+    elif cmd == "r":
         for bot in robots:
             bot.load_seq()
 
     # list and print sequences (only for the first attached robot)
-    elif cmd == 'l' or cmd == 'ls':
+    elif cmd == "l" or cmd == "ls":
         # remove asterisk (terminal holdover)
         if args:
-            args[0] = args[0].replace('*','')
+            args[0] = args[0].replace("*", "")
         for seq_name in robot.seq_list.keys():
             # skip if argument is not in the current sequence name
-            if args and args[0]!=seq_name[:len(args[0])]:
+            if args and args[0] != seq_name[: len(args[0])]:
                 continue
             print(seq_name)
 
     # exit
-    elif cmd == 'q':
+    elif cmd == "q":
         handle_quit()
 
     # debugging stuff
     # manually move
-    elif cmd == 'm':
+    elif cmd == "m":
         # get motor and pos if not given
         if not args:
-            args = ['', '']
-            args[0] = input('Motor: ')
-            args[1] = input('Position: ')
+            args = ["", ""]
+            args[0] = input("Motor: ")
+            args[1] = input("Position: ")
         for bot in robots:
-            if (args[0] == 'all'):
-                bot.goto_position({'tower_1': float(args[1]), 'tower_2': float(
-                    args[1]), 'tower_3': float(args[1])}, 0, True)
+            if args[0] == "all":
+                bot.goto_position(
+                    {
+                        "tower_1": float(args[1]),
+                        "tower_2": float(args[1]),
+                        "tower_3": float(args[1]),
+                    },
+                    0,
+                    True,
+                )
             else:
                 bot.goto_position({args[0]: float(args[1])}, 0, True)
 
     # adjust speed (0.5 to 2.0)
-    elif cmd == 'e':
+    elif cmd == "e":
         for bot in robots:
-            bot.speed = float(raw_input('Speed factor: '))
+            bot.speed = float(raw_input("Speed factor: "))
     # adjust amplitude (0.5 to 2.0)
-    elif cmd == 'a':
+    elif cmd == "a":
         for bot in robots:
-            bot.amp = float(raw_input('Amplitude factor: '))
+            bot.amp = float(raw_input("Amplitude factor: "))
     # adjust posture (-150 to 150)
-    elif cmd == 'p':
+    elif cmd == "p":
         for bot in robots:
-            bot.post = float(raw_input('Posture factor: '))
+            bot.post = float(raw_input("Posture factor: "))
 
     # help
-    elif cmd == 'h':
-        exec('help(' + input('Help: ') + ')')
+    elif cmd == "h":
+        exec("help(" + input("Help: ") + ")")
 
     # manual control
-    elif cmd == 'man':
+    elif cmd == "man":
         while True:
             try:
-                exec(input('Command: '))
+                exec(input("Command: "))
             except KeyboardInterrupt:
                 break
 
-    elif cmd=='':
-        handle_input(master_robot,last_cmd,last_args)
+    elif cmd == "":
+        handle_input(master_robot, last_cmd, last_args)
         return
     # directly call a sequence (skip 's')
     elif cmd in robot.seq_list.keys():
-        args=[cmd]
-        cmd='s'
-        handle_input(master_robot,cmd,args)
+        args = [cmd]
+        cmd = "s"
+        handle_input(master_robot, cmd, args)
     # directly call a random sequence by partial name match
     elif [cmd in seq_name for seq_name in robot.seq_list.keys()]:
         # print(args[0])
-        if 'mix' not in cmd:
-            seq_list = [seq_name for seq_name in robot.seq_list.keys() if cmd in seq_name and 'mix' not in seq_name]
+        if "mix" not in cmd:
+            seq_list = [
+                seq_name
+                for seq_name in robot.seq_list.keys()
+                if cmd in seq_name and "mix" not in seq_name
+            ]
         else:
-            seq_list = [seq_name for seq_name in robot.seq_list.keys() if cmd in seq_name]
+            seq_list = [
+                seq_name for seq_name in robot.seq_list.keys() if cmd in seq_name
+            ]
 
-        if len(seq_list)==0:
-            print("No sequences matching name: %s"%(cmd))
+        if len(seq_list) == 0:
+            print("No sequences matching name: %s" % (cmd))
             return
-        handle_input(master_robot,'s',[random.choice(seq_list)])
-        cmd=cmd
+        handle_input(master_robot, "s", [random.choice(seq_list)])
+        cmd = cmd
 
     # elif cmd == 'c':
     #     robot.calibrate()
@@ -429,7 +453,8 @@ def handle_input(robot, cmd, args=[]):
     else:
         print("Invalid input")
         return
-    last_cmd,last_args=cmd,args
+    last_cmd, last_args = cmd, args
+
 
 def record(robot):
     """
@@ -485,9 +510,9 @@ def store_gesture(name, sequence, label=""):
     requests.post(url, json=payload)
 
 
-'''
+"""
 Main Code
-'''
+"""
 
 
 def start_server(host, port, hide_browser):
@@ -508,19 +533,20 @@ def start_server(host, port, hide_browser):
 
     t = pt.PrettyTable()
 
-    t.field_names = ['IP ADDRESS']
-    [t.add_row([sentence[i:i + width]]) for i in range(0, len(sentence), width)]
+    t.field_names = ["IP ADDRESS"]
+    [t.add_row([sentence[i : i + width]]) for i in range(0, len(sentence), width)]
 
     print(t)
-   
+
     start_web()
     if not hide_browser:
         # Open the Angular app URL
         webbrowser.open("http://localhost:4200", new=2)
-    
+
     print("\nExample command: s -> *enter* -> yes -> *enter*")
-    server.set_funcs(master_robot, robots, handle_input,
-                     record, stop_record, store_gesture)  
+    server.set_funcs(
+        master_robot, robots, handle_input, record, stop_record, store_gesture
+    )
     server.start_server(host, port)
 
 
@@ -530,18 +556,20 @@ def start_web():
     """
     global yarn_process
 
-    command = "npm start"
+    command = "npm run web"
     yarn_process = subprocess.Popen(
-        command, shell=True, cwd="./blossom_website", stdout=subprocess.PIPE)
+        command, shell=True, cwd="./blossom_app", stdout=subprocess.PIPE
+    )
 
 
 def signal_handler(sig, frame):
     """
     Handle Ctrl+C by calling handle_quit() before exiting
     """
-    print('\nCaught Ctrl+C, cleaning up...')
+    print("\nCaught Ctrl+C, cleaning up...")
     handle_quit()
     sys.exit(0)
+
 
 def main(args):
     """
@@ -549,7 +577,7 @@ def main(args):
     """
     # Set up signal handler for graceful shutdown
     signal.signal(signal.SIGINT, signal_handler)
-    
+
     # get robots to start
     global master_robot
     global robots
@@ -559,17 +587,16 @@ def main(args):
     master_robot = safe_init_robot(args.names[0], configs[args.names[0]])
     configs.pop(args.names[0])
     # start robots
-    robots = [safe_init_robot(name, config)
-              for name, config in configs.items()]
+    robots = [safe_init_robot(name, config) for name, config in configs.items()]
     robots.append(master_robot)
 
     master_robot.reset_position()
-
 
     # start CLI
     start_cli(master_robot)
     # start server
     start_server(args.host, args.port, args.browser_disable)
+
 
 def imported_main(args):
     """
@@ -585,17 +612,16 @@ def imported_main(args):
     master_robot = safe_init_robot(args.names[0], configs[args.names[0]])
     configs.pop(args.names[0])
     # start robots
-    robots = [safe_init_robot(name, config)
-              for name, config in configs.items()]
+    robots = [safe_init_robot(name, config) for name, config in configs.items()]
     robots.append(master_robot)
 
     master_robot.reset_position()
-
 
     # start CLI
     # start_cli(master_robot)
     # start server
     # start_server(args.host, args.port, args.browser_disable)
+
 
 def safe_init_robot(name, config):
     """
@@ -632,17 +658,33 @@ def parse_args(args):
         parsed arguments
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--names', '-n', type=str, nargs='+',
-                        help='Name of the robot.', default=["woody"])
-    parser.add_argument('--port', '-p', type=int,
-                        help='Port to start server on.', default=8000)
-    parser.add_argument('--host', '-i', type=str, help='IP address of webserver',
-                        default=srvr.get_ip_address())
-    parser.add_argument('--browser-disable', '-b',
-                        help='prevent a browser window from opening with the blossom UI', 
-                        action='store_true')
-    parser.add_argument('--list-robots', '-l',
-                        help='list all robot names', action='store_true')
+    parser.add_argument(
+        "--names",
+        "-n",
+        type=str,
+        nargs="+",
+        help="Name of the robot.",
+        default=["woody"],
+    )
+    parser.add_argument(
+        "--port", "-p", type=int, help="Port to start server on.", default=8000
+    )
+    parser.add_argument(
+        "--host",
+        "-i",
+        type=str,
+        help="IP address of webserver",
+        default=srvr.get_ip_address(),
+    )
+    parser.add_argument(
+        "--browser-disable",
+        "-b",
+        help="prevent a browser window from opening with the blossom UI",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--list-robots", "-l", help="list all robot names", action="store_true"
+    )
     return parser.parse_args(args)
 
 

@@ -2,14 +2,16 @@ import pypot.robot
 from . import sequence
 import collections
 
+
 # define the robot
 class Robot(object):
     """
     Robot wrapper object around PyPot's robot
     Extends functionality to handle sequences
     """
+
     # initialize robot
-    def __init__(self, config, baudrate=57600, name=''):
+    def __init__(self, config, baudrate=57600, name=""):
         # init list of motors
         self.motors = {}
         # init list of sequences
@@ -32,20 +34,20 @@ class Robot(object):
 
         # reset to resting position
         self.reset_pos = {
-                            'tower_1':50,
-                            'tower_2':50,
-                            'tower_3':50,
-                            'base':0,
-                            'ears':100
-                        }
+            "tower_1": 50,
+            "tower_2": 50,
+            "tower_3": 50,
+            "base": 0,
+            "ears": 100,
+        }
 
         self.range_pos = {
-                            'tower_1':(-40,140),
-                            'tower_2':(-40,140),
-                            'tower_3':(-40,140),
-                            'base':(-140,140),
-                            'ears':(0,140)
-                        }
+            "tower_1": (-40, 140),
+            "tower_2": (-40, 140),
+            "tower_3": (-40, 140),
+            "base": (-140, 140),
+            "ears": (0, 140),
+        }
 
         # init robot's believed position
         self.believed_motor_pos = self.reset_pos
@@ -60,7 +62,7 @@ class Robot(object):
             wait        wait for the motors to reach goal before new cmd
         """
         # activate motors
-        if(self.compliant):
+        if self.compliant:
             self.set_compliant(False)
 
         # try going to position
@@ -117,7 +119,7 @@ class Robot(object):
         seq = sequence.Sequence.from_json(seq_fn, rad)
 
         # don't add if sequence name already exists
-        if (seq.seq_name in self.seq_list.keys() and not force):
+        if seq.seq_name in self.seq_list.keys() and not force:
             return
         else:
             self.add_sequence(seq)
@@ -136,4 +138,6 @@ class Robot(object):
         #     name_ctr+=1
         self.seq_list.update({seq_name: seq})
         # ensure that the list stays in sorted alphabetical order
-        self.seq_list = collections.OrderedDict([(s,self.seq_list[s]) for s in sorted(self.seq_list.keys())])
+        self.seq_list = collections.OrderedDict(
+            [(s, self.seq_list[s]) for s in sorted(self.seq_list.keys())]
+        )
