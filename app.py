@@ -26,6 +26,7 @@ hand_to_seq = {
     "OK": "happy",
     "Peace": "fear",
     "Love": "happy_dance",
+    "Loser": "insane",
 }
 
 
