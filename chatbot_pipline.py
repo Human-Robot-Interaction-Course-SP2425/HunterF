@@ -1,3 +1,5 @@
+import json
+from pydantic import BaseModel
 from pynput.keyboard import Listener, Key
 from pynput import keyboard
 from pvrecorder import PvRecorder
@@ -9,6 +11,8 @@ import time
 from pygame import mixer
 import os
 from dotenv import load_dotenv
+
+from utilities import init_robot, run_seq
 
 
 def list_audio_devices():
@@ -28,6 +32,10 @@ def list_audio_devices():
     return len(PvRecorder.get_available_devices())
 
 
+class Tone(BaseModel):
+    emotional_tone: str
+
+
 class ChatBot:
     def __init__(self, mic_index):
         self.preprompt = """
@@ -36,11 +44,56 @@ class ChatBot:
         The following text has been taking in from an audio transcription
         so also watch out for weird spellings:
         """
-        load_dotenv()
+        load_dotenv(override=True)
         self.client = OpenAI(
             api_key=os.environ.get("OPENAI_API_KEY"),
         )
         self.mic_index = mic_index
+
+    def get_tone(self, prompt: str, model: str = "gpt-4o") -> Tone | None:
+        response = self.client.beta.chat.completions.parse(
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You're a tone analyzer. For the input message, identify its meaning and emotional tone.",
+                },
+                {"role": "user", "content": f"Analyze this message: {prompt}"},
+            ],
+            functions=[
+                {
+                    "name": "analyze_tone",
+                    "description": "Extract the meaning and emotional tone from a message.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "emotional_tone": {
+                                "type": "string",
+                                "enum": [
+                                    "neutral",
+                                    "happy",
+                                    "sad",
+                                    "angry",
+                                ],
+                                "description": "The dominant emotional tone of the message.",
+                            },
+                        },
+                        "required": ["emotional_tone"],
+                    },
+                }
+            ],
+            function_call={"name": "analyze_tone"},
+        )
+        print()
+
+        try:
+            func_call = response.choices[0].message.function_call
+            args = json.loads(func_call.arguments)
+
+            return Tone(**args)
+        except Exception as e:
+            print(f"Failed to parse function arguments: {e}")
+            return None
 
     def record_audio(self) -> str:
         """
@@ -157,7 +210,6 @@ class ChatBot:
 
         os.remove("speech.mp3")
 
-
         return "speech.mp3"
 
     def run_pipline(self, speech2text_model="whisper-1", chat_model="gpt-4o-mini", text2speech_model="tts-1",
@@ -172,16 +224,30 @@ class ChatBot:
         text_response = self.prompt_gpt(transcribed_text, self.preprompt, chat_model)
         print(f"[{chat_model} response]: {text_response}")
 
-        filename = self.text2speech(text_response, text2speech_model, text2speech_voice)
-        # print(f"output file {filename}")
+        tone = self.get_tone(transcribed_text, chat_model)
+        print(f"[{chat_model} tone]: {tone.emotional_tone}")
 
-        self.preprompt += f"""
-        past input:
-            {transcribed_text}
-        past response:
-            {text_response}\n
-        """
-        return transcribed_text, text_response, self.preprompt
+        # filename = self.text2speech(text_response, text2speech_model, text2speech_voice)
+        # # print(f"output file {filename}")
+
+        # self.preprompt += f"""
+        # past input:
+        #     {transcribed_text}
+        # past response:
+        #     {text_response}\n
+        # """
+
+        match tone.emotional_tone:
+            case "happy":
+                run_seq("happy")
+            case "sad":
+                run_seq("sad")
+            case "angry":
+                run_seq("anger_explode")
+            case "neutral":
+                run_seq("fear_look")
+        time.sleep(10)
+        return transcribed_text, text_response, self.preprompt, tone
 
 
 if __name__ == '__main__':
@@ -200,14 +266,10 @@ if __name__ == '__main__':
 
     # input selected audio device index
     cb = ChatBot(mic_index=MIC_INDEX)
+    init_robot()
 
     # run the chatbot
     cb.run_pipline()
 
     # run the chat bot again
-    transcribed_text, response, old_convo = cb.run_pipline()
-
-    # print result
-    print("\n---convo log:---")
-    print(transcribed_text, response, old_convo)
-
+    cb.run_pipline()

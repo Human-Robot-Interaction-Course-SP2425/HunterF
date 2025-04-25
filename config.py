@@ -1,6 +1,7 @@
 """
 Module to help differentiate between robots with different motor configurations.
 """
+
 from __future__ import print_function
 
 import pypot.dynamixel as pd
@@ -17,70 +18,63 @@ class RobotConfig(object):
     def __init__(self):
         self.ports = pd.get_available_ports()
         # catch no available ports
-        if (len(self.ports) == 0):
-            self.ports = ['']
+        if len(self.ports) == 0:
+            self.ports = [""]
         self.configs = {
-            'woody': {
-                'controllers': {
-                    'my_dxl_controller': {
-                        'sync_read': False,
-                        'attached_motors': ['tower', 'bases', 'head'],
-                        'port': 'auto',
-                        'baudrate': 1000000,
-                        'protocol': 2
+            "woody": {
+                "controllers": {
+                    "my_dxl_controller": {
+                        "sync_read": False,
+                        "attached_motors": ["tower", "bases", "head"],
+                        "port": "auto",
+                        "baudrate": 1000000,
+                        "protocol": 2,
                     }
                 },
-                'motorgroups': {
-                    'tower': ['tower_1', 'tower_2', 'tower_3'],
-                    'bases': ['base'],
-                    'head': ['ears']
+                "motorgroups": {
+                    "tower": ["tower_1", "tower_2", "tower_3"],
+                    "bases": ["base"],
+                    "head": ["ears"],
                 },
-                'motors': {
-                    'tower_1': {
-                        'orientation': 'direct',
-                        'type': 'XL-320',
-                        'id': 1,
-                        'angle_limit': [-150.0, 150.0],
-                        'offset': 0.0
+                "motors": {
+                    "tower_1": {
+                        "orientation": "direct",
+                        "type": "XL-320",
+                        "id": 1,
+                        "angle_limit": [-150.0, 150.0],
+                        "offset": 0.0,
                     },
-                    'tower_2': {
-                        'orientation': 'direct',
-                        'type': 'XL-320',
-                        'id': 2,
-                        'angle_limit': [-150.0, 150.0],
-                        'offset': 0.0
+                    "tower_2": {
+                        "orientation": "direct",
+                        "type": "XL-320",
+                        "id": 2,
+                        "angle_limit": [-150.0, 150.0],
+                        "offset": 0.0,
                     },
-                    'tower_3': {
-                        'orientation': 'direct',
-                        'type': 'XL-320',
-                        'id': 3,
-                        'angle_limit': [-150.0, 150.0],
-                        'offset': 0.0
+                    "tower_3": {
+                        "orientation": "direct",
+                        "type": "XL-320",
+                        "id": 3,
+                        "angle_limit": [-150.0, 150.0],
+                        "offset": 0.0,
                     },
-                    'base': {
-                        'orientation': 'direct',
-                        'type': 'XL-320',
-                        'id': 4,
-                        'angle_limit': [-150.0, 150.0],
-                        'offset': 0.0
+                    "base": {
+                        "orientation": "direct",
+                        "type": "XL-320",
+                        "id": 4,
+                        "angle_limit": [-150.0, 150.0],
+                        "offset": 0.0,
                     },
-                    'ears': {
-                        'orientation': 'direct',
-                        'type': 'XL-320',
-                        'id': 5,
-                        'angle_limit': [50, 130.0],
-                        'offset': 0.0
+                    "ears": {
+                        "orientation": "direct",
+                        "type": "XL-320",
+                        "id": 5,
+                        "angle_limit": [50, 130.0],
+                        "offset": 0.0,
                     },
-                }
+                },
             },
-            'test': {
-                'controllers': {
-                },
-                'motorgroups': {
-                },
-                'motors': {
-                }
-            }
+            "test": {"controllers": {}, "motorgroups": {}, "motors": {}},
         }
 
     def get_names(self):
@@ -94,7 +88,7 @@ class RobotConfig(object):
         assign unique ports to a list of names for as many ports as we have available
         """
         # test config for debugging without a robot
-        if (names[0] == 'test'):
+        if names[0] == "test":
             return {names[0]: self.configs[names[0]]}
 
         # get configs for all robots
@@ -107,17 +101,17 @@ class RobotConfig(object):
         # get IDs for connected motors
         used_configs = []
         for port in self.ports:
-            if (port != "COM3"):
-                continue
+            # if (port != "COM3"):
+            #     continue
             if port == "":
                 print("No ports available")
                 sys.exit(1)
             try:
-                if (names[0]!='blossom' and names[0]!='vyo'):
+                if names[0] != "blossom" and names[0] != "vyo":
                     dxl_io = pd.Dxl320IO(port)
                 else:
-                    if (names[0]=='vyo'):
-                        dxl_io = pd.DxlIO(port,57600)
+                    if names[0] == "vyo":
+                        dxl_io = pd.DxlIO(port, 57600)
                     else:
                         dxl_io = pd.DxlIO(port)
                 scanned_ids = dxl_io.scan(range(20))
@@ -129,11 +123,14 @@ class RobotConfig(object):
                 sys.exit(1)
             # general exception
             except Exception as e:
-                print("general exception caught (please update the except statement with the exception)", e)
+                print(
+                    "general exception caught (please update the except statement with the exception)",
+                    e,
+                )
                 scanned_ids = []
 
             # print found motors
-            if (len(scanned_ids)==0):
+            if len(scanned_ids) == 0:
                 print("No motors found on %s" % port)
                 continue
             else:
@@ -144,17 +141,18 @@ class RobotConfig(object):
                 name, config = configs[i]
 
                 # MH: scanning doesn't seem to work for the usb hub. Doing this for now since we don't use multiple bots, but if we ever do...valid_port_for_robot probably won't work
-                valid_port = (len(names) == 1 or self.valid_port_for_robot(
-                    scanned_ids, config))
+                valid_port = len(names) == 1 or self.valid_port_for_robot(
+                    scanned_ids, config
+                )
 
                 # remove missing motors
                 config = self.return_valid_motors(scanned_ids, config)
 
                 # iterate through all configs
                 if configs[i] not in used_configs and valid_port:
-                    controller = list(config['controllers'].keys())[0]
-                    config['controllers'][controller]['port'] = port
-                    used_configs.append(configs[i]) 
+                    controller = list(config["controllers"].keys())[0]
+                    config["controllers"][controller]["port"] = port
+                    used_configs.append(configs[i])
                     break
             else:
                 print("No robot found for port", port)
@@ -181,20 +179,20 @@ class RobotConfig(object):
             config: the robot config
         """
         # get lists from
-        motor_list = config['motors']
-        motor_groups = config['motorgroups']
+        motor_list = config["motors"]
+        motor_groups = config["motorgroups"]
 
         missing_motors = []
         # iterate through all motors
         for m in motor_list:
             # if motor ID is not in list of scanned IDs, mark it for removal
-            if not (motor_list[m]['id'] in scanned_ids):
-                print("Couldn't find motor %s: " % motor_list[m]['id'], m)
+            if not (motor_list[m]["id"] in scanned_ids):
+                print("Couldn't find motor %s: " % motor_list[m]["id"], m)
                 missing_motors.append(m)
 
         # remove missing motors
         for m in missing_motors:
-            del(motor_list[m])
+            del motor_list[m]
 
             # must also remove motors from any motorgroups that they belong in
             for mg in motor_groups:
